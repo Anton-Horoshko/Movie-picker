@@ -16,6 +16,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("home");
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [movieDetails, setMovieDetails] = useState<any>(null);
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchMovies() {
@@ -41,9 +42,14 @@ export default function Home() {
     fetchMovies();
   }, [currentPage, activeTab]);
 
-  function GenreButton({ label }: { label: string }) {
+  useEffect(() => {
+    console.log("Жанр изменился:", selectedGenre);
+  }, [selectedGenre]);
+
+  function GenreButton({ label, onClick }: { label: string; onClick?: () => void }) {
       return (
         <button
+          onClick={onClick}
           className="
             bg-zinc-800 rounded-xl p-6
             text-lg font-medium
@@ -104,39 +110,6 @@ export default function Home() {
           Top Rated
         </button>
       </div>
-
-      {/* Кнопки жанров */}
-
-      {activeTab === "home" && (
-      <div className="space-y-10">
-        
-        <section>
-          <h2 className="text-xl font-semibold mb-4">По настроению</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <GenreButton label="Боевики" />
-            <GenreButton label="Комедия" />
-            <GenreButton label="Детектив" />
-          </div>
-        </section>
-
-        <section>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <GenreButton label="Ужасы" />
-            <GenreButton label="Фантастика" />
-            <GenreButton label="Приключения" />
-            <GenreButton label="Фэнтези" />
-          </div>
-        </section>
-
-        <section>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <GenreButton label="Спорт" />
-            <GenreButton label="Триллер" />
-            <GenreButton label="Драмы" />
-          </div>
-        </section>
-      </div>
-      )}
 
       {/* Сетка фильмов */}
       {activeTab !== "home" && (
@@ -236,6 +209,48 @@ export default function Home() {
           </div>
         </div>
       )}
+
+
+      {/* Кнопки жанров */}
+
+      {activeTab === "home" && (
+      <div className="space-y-10">
+        
+        <section>
+          <h2 className="text-xl font-semibold mb-4">По настроению</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <GenreButton label="Боевики" onClick={() => setSelectedGenre("Action")} />
+            <GenreButton label="Комедия" onClick={() => setSelectedGenre("Comedy")} /> 
+            <GenreButton label="Детектив" onClick={() => setSelectedGenre("Detective")} />
+          </div>
+        </section>
+
+        <section>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <GenreButton label="Ужасы" onClick={() => setSelectedGenre("Horror")} />
+            <GenreButton label="Фантастика" onClick={() => setSelectedGenre("Science Fiction")} />
+            <GenreButton label="Приключения" onClick={() => setSelectedGenre("Adventure")} />
+            <GenreButton label="Фэнтези" onClick={() => setSelectedGenre("Fantasy")} />
+          </div>
+        </section>
+
+        <section>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <GenreButton label="Спорт" onClick={() => setSelectedGenre("Sports")} />
+            <GenreButton label="Триллер" onClick={() => setSelectedGenre("Thriller")} />
+            <GenreButton label="Драмы" onClick={() => setSelectedGenre("Drama")} />
+          </div>
+        </section>
+
+        {selectedGenre && (
+          <div>МОДАЛКА {selectedGenre}</div>
+        )}
+      </div>
+
+
+      )}
+
+
     </main>
   );
 }
