@@ -1,14 +1,10 @@
 "use client";
 
+import MovieCard from "@/components/MovieCard";
+import MovieModal from "@/components/MovieModal";
 import { useState, useEffect } from "react";
-
-type Movie = {
-  id: number;
-  title: string;
-  poster_path: string;
-  release_date: string;
-  vote_average: number;
-};
+import { Movie } from "@/data/types";
+import { genres } from "@/data/genres";
 
 export default function Home() {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -16,21 +12,20 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("home");
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [movieDetails, setMovieDetails] = useState<any>(null);
-  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+  const [selectedGenre, setSelectedGenre] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchMovies() {
       let url = "";
 
       if (activeTab === "home") {
-        
-        setMovies([]);          // очищаем фильмы
-        setCurrentPage(1);      // сбрасываем страницу
+        setMovies([]);
         return;
+      }
 
-      } else if (activeTab === "popular"){
-        url = `https://api.themoviedb.org/3/movie/${activeTab}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}&page=${currentPage}&language=ru-RU`;
-      } else{
+      if (activeTab === "genre" && selectedGenre) {
+        url = `https://api.themoviedb.org/3/discover/movie?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}&with_genres=${selectedGenre}&page=${currentPage}&language=ru-RU`;
+      } else {
         url = `https://api.themoviedb.org/3/movie/${activeTab}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}&page=${currentPage}&language=ru-RU`;
       }
 
@@ -40,11 +35,8 @@ export default function Home() {
     }
 
     fetchMovies();
-  }, [currentPage, activeTab]);
+  }, [activeTab, selectedGenre, currentPage]);
 
-  useEffect(() => {
-    console.log("Жанр изменился:", selectedGenre);
-  }, [selectedGenre]);
 
   function GenreButton({ label, onClick }: { label: string; onClick?: () => void }) {
       return (
@@ -87,10 +79,10 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white p-6">
-      <h1 className="text-3xl font-bold mb-6">Что посмотреть сегодня?</h1>
+      <h1 className="text-3xl text-center font-bold mb-6">Что посмотреть сегодня?</h1>
 
       {/* Вкладки */}
-      <div className="flex gap-4 mb-4" >
+      <div className="flex justify-center items-center gap-4 mb-4">
         <button
           className={activeTab === "home" ? "font-bold" : "" }
           onClick={() => { setActiveTab("home"); setCurrentPage(1); }} 
@@ -115,32 +107,11 @@ export default function Home() {
       {activeTab !== "home" && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {movies.map((movie) => (
-            <div
+            <MovieCard
               key={movie.id}
-              className="bg-zinc-900 rounded-lg overflow-hidden relative cursor-pointer"
-              onClick={() => handleClick(movie)}
-            >
-              <img
-                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                alt={movie.title}
-                className="rounded mb-2 w-full"
-              />
-
-              {/* Рейтинг сверху */}
-              <div
-                className={`absolute top-2 left-2 text-xs font-bold px-2 py-1 rounded ${
-                  movie.vote_average >= 7
-                    ? "bg-green-400 text-black"
-                    : movie.vote_average >= 5
-                    ? "bg-yellow-400 text-black"
-                    : "bg-red-500 text-white"
-                }`}
-              >
-                ⭐ {movie.vote_average}
-              </div>
-
-              <h2 className="text-sm font-semibold mt-2">{movie.title}</h2>
-            </div>
+              movie={movie}
+              onClick={handleClick}
+            />
           ))}
         </div>
       )}
@@ -169,47 +140,12 @@ export default function Home() {
 
       {/* Модальное окно */}
       {selectedMovie && movieDetails && (
-        <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50">
-          <div className="bg-zinc-900 text-white rounded-lg p-6 w-11/12 max-w-4xl relative">
-            <button
-              className="absolute top-2 right-2 text-white font-bold text-xl cursor-pointer"
-              onClick={closeModal}
-            >
-              ✕
-            </button>
-
-            <div className="flex flex-col md:flex-row gap-4">
-              <img
-                src={`https://image.tmdb.org/t/p/w500${movieDetails.poster_path}`}
-                alt={movieDetails.title}
-                className="w-full md:w-1/3 rounded"
-              />
-
-              <div className="flex-1 flex flex-col justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold mb-2">{movieDetails.title}</h2>
-                  <p className="mb-1">Год: {movieDetails.release_date?.slice(0, 4)}</p>
-                  <p className="mb-1">Длительность: {movieDetails.runtime} мин</p>
-                  <p className="mb-1">Рейтинг: ⭐ {movieDetails.vote_average}</p>
-                  <p className="mt-2">{movieDetails.overview}</p>
-                </div>
-
-                <div className="mt-4 flex gap-4">
-                  <button className="flex-1 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded cursor-pointer"
-                  onClick={() => searchMovie(movieDetails.title, "смотреть")}>
-                    Искать
-                  </button>
-                  <button className="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white px-4 py-2 rounded cursor-pointer"
-                  onClick={() => searchMovie(movieDetails.title, "трейлер")}>
-                    Трейлер
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <MovieModal
+          movie={movieDetails}
+          onClose={closeModal}
+          onSearch={searchMovie}
+        />
       )}
-
 
       {/* Кнопки жанров */}
 
@@ -219,37 +155,49 @@ export default function Home() {
         <section>
           <h2 className="text-xl font-semibold mb-4">По настроению</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <GenreButton label="Боевики" onClick={() => setSelectedGenre("Action")} />
-            <GenreButton label="Комедия" onClick={() => setSelectedGenre("Comedy")} /> 
-            <GenreButton label="Детектив" onClick={() => setSelectedGenre("Detective")} />
+            <GenreButton label="Боевики" onClick={() => { setSelectedGenre(28); setActiveTab("genre"); }} />
+            <GenreButton label="Комедия" onClick={() => { setSelectedGenre(35); setActiveTab("genre"); }} /> 
+            <GenreButton label="Детектив" onClick={() => { setSelectedGenre(53); setActiveTab("genre"); }} />
           </div>
         </section>
 
         <section>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <GenreButton label="Ужасы" onClick={() => setSelectedGenre("Horror")} />
-            <GenreButton label="Фантастика" onClick={() => setSelectedGenre("Science Fiction")} />
-            <GenreButton label="Приключения" onClick={() => setSelectedGenre("Adventure")} />
-            <GenreButton label="Фэнтези" onClick={() => setSelectedGenre("Fantasy")} />
+            <GenreButton label="Ужасы" onClick={() => { setSelectedGenre(27); setActiveTab("genre"); }} />
+            <GenreButton label="Фантастика" onClick={() => { setSelectedGenre(878); setActiveTab("genre"); }} />
+            <GenreButton label="Приключения" onClick={() => { setSelectedGenre(12); setActiveTab("genre"); }} />
+            <GenreButton label="Фэнтези" onClick={() => { setSelectedGenre(14); setActiveTab("genre"); }} />
           </div>
         </section>
 
         <section>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <GenreButton label="Спорт" onClick={() => setSelectedGenre("Sports")} />
-            <GenreButton label="Триллер" onClick={() => setSelectedGenre("Thriller")} />
-            <GenreButton label="Драмы" onClick={() => setSelectedGenre("Drama")} />
+            <GenreButton label="Спорт" onClick={() => { setSelectedGenre(2010); setActiveTab("genre"); }} />
+            <GenreButton label="Триллер" onClick={() => { setSelectedGenre(53); setActiveTab("genre"); }} />
+            <GenreButton label="Драмы" onClick={() => { setSelectedGenre(18); setActiveTab("genre"); }} />
           </div>
         </section>
 
         {selectedGenre && (
-          <div>МОДАЛКА {selectedGenre}</div>
+          <div className="mt-4 text-center text-3xl">{genres.find(g => g.id === selectedGenre)?.name} films</div>
         )}
+
+        {movies.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {movies.map((movie) => (
+              <MovieCard
+                key={movie.id}
+                movie={movie}
+                onClick={handleClick}
+              />
+            ))}
+          </div>
+
+        )}
+
       </div>
 
-
       )}
-
 
     </main>
   );
