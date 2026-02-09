@@ -1,11 +1,25 @@
-export const genres = [
-    { id: 28, name: "Боевики" },
-    { id: 35, name: "Комедия" },
-    { id: 27, name: "Ужасы" },
-    { id: 18, name: "Драма" },
-    { id: 878, name: "Фантастика" },
-    { id: 53, name: "Триллер" },
-    { id: 12, name: "Приключения" },
-    { id: 14, name: "Фэнтези" },
-    { id: 2010, name: "Спорт" },
+interface Genre {
+    id: number;
+    name: string;
+}
+
+export const genres: Genre[] = [
+    { id: 28, name: "Action" },
+    { id: 12, name: "Adventure" },
+    { id: 16, name: "Animation" },
+    { id: 35, name: "Comedy" },
+    { id: 80, name: "Crime" },
+    { id: 99, name: "Documentary" },
+    { id: 18, name: "Drama" },
+    { id: 10751, name: "Family" },
+    { id: 14, name: "Fantasy" },
+    { id: 36, name: "History" },
+    { id: 27, name: "Horror" },
+    { id: 10402, name: "Music" },
+    { id: 9648, name: "Mystery" },
+    { id: 10749, name: "Romance" },
+    { id: 878, name: "Science Fiction" },
+    { id: 10752, name: "War" },
+    { id: 53, name: "Thriller" },
+    { id: 37, name: "Western" },
 ];

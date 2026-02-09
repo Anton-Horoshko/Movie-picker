@@ -14,28 +14,29 @@ export default function Home() {
   const [movieDetails, setMovieDetails] = useState<any>(null);
   const [selectedGenre, setSelectedGenre] = useState<number | null>(null);
 
-  useEffect(() => {
-    async function fetchMovies() {
-      let url = "";
+useEffect(() => {
+  async function fetchMovies() {
+    let url = "";
 
-      if (activeTab === "home") {
+    if (activeTab === "home") {
+      if (!selectedGenre) {
         setMovies([]);
         return;
       }
 
-      if (activeTab === "genre" && selectedGenre) {
-        url = `https://api.themoviedb.org/3/discover/movie?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}&with_genres=${selectedGenre}&page=${currentPage}&language=ru-RU`;
-      } else {
-        url = `https://api.themoviedb.org/3/movie/${activeTab}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}&page=${currentPage}&language=ru-RU`;
-      }
-
-      const res = await fetch(url);
-      const data = await res.json();
-      setMovies(data.results);
+      url = `https://api.themoviedb.org/3/discover/movie?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}&with_genres=${selectedGenre}&page=${currentPage}&language=en-US`;
+    } else {
+      url = `https://api.themoviedb.org/3/movie/${activeTab}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}&page=${currentPage}&language=en-US`;
     }
 
-    fetchMovies();
-  }, [activeTab, selectedGenre, currentPage]);
+    const res = await fetch(url);
+    const data = await res.json();
+    setMovies(data.results);
+  }
+
+  fetchMovies();
+}, [activeTab, selectedGenre, currentPage]);
+
 
 
   function GenreButton({ label, onClick }: { label: string; onClick?: () => void }) {
@@ -54,24 +55,24 @@ export default function Home() {
         </button>
       );}
 
-  // Функция для открытия модалки и подгрузки деталей
+  // Open modal and fetch movie details
   async function handleClick(movie: Movie) {
     setSelectedMovie(movie);
 
     const res = await fetch(
-      `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}&language=ru-RU`
+      `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}&language=en-US`
     );
     const data = await res.json();
     setMovieDetails(data);
   }
 
-  // Закрыть модалку
+  // Close modal
   function closeModal() {
     setSelectedMovie(null);
     setMovieDetails(null);
   }
 
-  function searchMovie(movieTitle: string, searchText: string) {
+function searchMovie(movieTitle: string, searchText: string) {
   const query = encodeURIComponent(`${movieTitle + " " + searchText}`);
   const url = `https://www.google.com/search?q=${query}`;
   window.open(url, "_blank");
@@ -79,9 +80,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white p-6">
-      <h1 className="text-3xl text-center font-bold mb-6">Что посмотреть сегодня?</h1>
+      <h1 className="text-3xl text-center font-bold mb-6">What to watch today?</h1>
 
-      {/* Вкладки */}
+      {/* Tabs */}
       <div className="flex justify-center items-center gap-4 mb-4">
         <button
           className={activeTab === "home" ? "font-bold" : "" }
@@ -103,7 +104,7 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Сетка фильмов */}
+      {/* Movies grid */}
       {activeTab !== "home" && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {movies.map((movie) => (
@@ -116,7 +117,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Пагинация */}
+      {/* Pagination */}
       {activeTab !== "home" && (
         <div className="mt-6 flex justify-center gap-4">
           <button
@@ -124,7 +125,7 @@ export default function Home() {
             className="px-4 py-2 bg-zinc-800 rounded hover:bg-zinc-700"
             disabled={currentPage === 1}
           >
-            Назад
+            Previous
           </button>
 
           <span className="px-4 py-2">{currentPage}</span>
@@ -133,12 +134,12 @@ export default function Home() {
             onClick={() => setCurrentPage((prev) => prev + 1)}
             className="px-4 py-2 bg-zinc-800 rounded hover:bg-zinc-700"
           >
-            Вперёд
+            Next
           </button>
         </div>
       )}
 
-      {/* Модальное окно */}
+      {/* Modal window */}
       {selectedMovie && movieDetails && (
         <MovieModal
           movie={movieDetails}
@@ -147,39 +148,39 @@ export default function Home() {
         />
       )}
 
-      {/* Кнопки жанров */}
+      {/* Genre buttons */}
 
       {activeTab === "home" && (
       <div className="space-y-10">
         
         <section>
-          <h2 className="text-xl font-semibold mb-4">По настроению</h2>
+          <h2 className="text-xl font-semibold mb-4">Top 20</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <GenreButton label="Боевики" onClick={() => { setSelectedGenre(28); setActiveTab("genre"); }} />
-            <GenreButton label="Комедия" onClick={() => { setSelectedGenre(35); setActiveTab("genre"); }} /> 
-            <GenreButton label="Детектив" onClick={() => { setSelectedGenre(53); setActiveTab("genre"); }} />
+            <GenreButton label="Action" onClick={() => { setSelectedGenre(28); setActiveTab("home"); }} />
+            <GenreButton label="Comedy" onClick={() => { setSelectedGenre(35); setActiveTab("home"); }} /> 
+            <GenreButton label="Crime" onClick={() => { setSelectedGenre(53); setActiveTab("home"); }} />
           </div>
         </section>
 
         <section>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <GenreButton label="Ужасы" onClick={() => { setSelectedGenre(27); setActiveTab("genre"); }} />
-            <GenreButton label="Фантастика" onClick={() => { setSelectedGenre(878); setActiveTab("genre"); }} />
-            <GenreButton label="Приключения" onClick={() => { setSelectedGenre(12); setActiveTab("genre"); }} />
-            <GenreButton label="Фэнтези" onClick={() => { setSelectedGenre(14); setActiveTab("genre"); }} />
+            <GenreButton label="Horror" onClick={() => { setSelectedGenre(27); setActiveTab("home"); }} />
+            <GenreButton label="Science Fiction" onClick={() => { setSelectedGenre(878); setActiveTab("home"); }} />
+            <GenreButton label="Adventure" onClick={() => { setSelectedGenre(12); setActiveTab("home"); }} />
+            <GenreButton label="Fantasy" onClick={() => { setSelectedGenre(14); setActiveTab("home"); }} />
           </div>
         </section>
 
         <section>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <GenreButton label="Спорт" onClick={() => { setSelectedGenre(2010); setActiveTab("genre"); }} />
-            <GenreButton label="Триллер" onClick={() => { setSelectedGenre(53); setActiveTab("genre"); }} />
-            <GenreButton label="Драмы" onClick={() => { setSelectedGenre(18); setActiveTab("genre"); }} />
+            <GenreButton label="Romance" onClick={() => { setSelectedGenre(10749); setActiveTab("home"); }} />
+            <GenreButton label="Thriller" onClick={() => { setSelectedGenre(9648); setActiveTab("home"); }} />
+            <GenreButton label="Drama" onClick={() => { setSelectedGenre(18); setActiveTab("home"); }} />
           </div>
         </section>
 
         {selectedGenre && (
-          <div className="mt-4 text-center text-3xl">{genres.find(g => g.id === selectedGenre)?.name} films</div>
+          <div className="mt-4 text-center text-3xl"> Top 20 { genres.find(g => g.id === selectedGenre)?.name} films</div>
         )}
 
         {movies.length > 0 && (
